@@ -1,0 +1,56 @@
+
+#Create matrix where each col. represents a word token and # of times (row)
+from sklearn.feature_extraction.text import CountVectorizer
+
+#init count vectorizer
+count_vector = CountVectorizer(max_features = 500)
+
+import pandas as pd
+
+#fit raw text data 
+#import data
+df = pd.read_csv(r'file location')
+#fit data
+data_count = count_vector.fit_transform(df['Job Description']) #sparse matrix 
+
+#first entry of sparse matrix (frequency of words)
+data_count.toarray()[0]
+
+#see features
+print(count_vector.get_feature_names())
+
+job_desc = df['Job Description']
+
+#keep ONLY letter-only words
+def is_letter_only(word):
+    for char in word:
+        if not char.isalpha():
+            return False
+    return True
+
+data_cleaned = []
+for doc in job_desc:
+    doc_cleaned = ' '.join(word for word in doc.split()
+                          if is_letter_only(word) )
+    data_cleaned.append(doc_cleaned)
+
+#Dropping Stop Words
+from sklearn.feature_extraction import stop_words 
+count_vector_sw = CountVectorizer(stop_words = "english", max_features = 500)
+
+
+data_cleaned_count = count_vector_sw.fit_transform(data_cleaned)
+
+print(count_vector_sw.get_feature_names())
+
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+
+#Word cloud
+wc = WordCloud()
+img = wc.generate_from_text(' '.join(data_cleaned))
+img.to_file(r'wordcloud image.jpeg') # example of something you can do with the img
+
+
+import matplotlib.pyplot as plt
+plt.axis("off")
+plt.imshow(img, interpolation='bilinear')
